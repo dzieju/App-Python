@@ -4,7 +4,7 @@ import subprocess
 import threading
 import queue
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Optional
 
 
 class ProcessRunner:
@@ -21,6 +21,7 @@ class ProcessRunner:
         self._output_queue: queue.Queue = queue.Queue()
         self._reader_thread: Optional[threading.Thread] = None
         self._running = False
+        self._lock = threading.Lock()
 
     @property
     def is_running(self) -> bool:
@@ -29,9 +30,11 @@ class ProcessRunner:
         Returns:
             True if a process is running, False otherwise.
         """
-        if self._process is None:
+        with self._lock:
+            process = self._process
+        if process is None:
             return False
-        return self._process.poll() is None
+        return process.poll() is None
 
     def start(self, script_path: str) -> bool:
         """Start a Python script as a subprocess.
@@ -68,27 +71,32 @@ class ProcessRunner:
     def _start_reader_thread(self) -> None:
         """Start a background thread to read process output."""
         def read_output():
-            if self._process and self._process.stdout:
-                for line in self._process.stdout:
+            with self._lock:
+                process = self._process
+            if process and process.stdout:
+                for line in process.stdout:
                     self._output_queue.put(line)
-                self._process.stdout.close()
-            self._running = False
+                process.stdout.close()
+            with self._lock:
+                self._running = False
 
         self._reader_thread = threading.Thread(target=read_output, daemon=True)
         self._reader_thread.start()
 
     def stop(self) -> None:
         """Stop the running process."""
-        if self._process is not None:
-            try:
-                self._process.terminate()
-                self._process.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                self._process.kill()
-                self._process.wait()
-            finally:
-                self._process = None
-                self._running = False
+        with self._lock:
+            process = self._process
+            if process is not None:
+                try:
+                    process.terminate()
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait()
+                finally:
+                    self._process = None
+                    self._running = False
 
     def get_output(self) -> str:
         """Get all available output from the process.

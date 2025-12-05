@@ -4,6 +4,9 @@ import PySimpleGUI as sg
 from config import ConfigManager
 from runner import ProcessRunner
 
+# Constants
+LOG_SEPARATOR = "=" * 50
+
 
 def create_layout():
     """Create the main window layout.
@@ -91,7 +94,7 @@ def main():
                 window["-ZLECENIA-"].update(disabled=True)
                 window["-FAKTURY-"].update(disabled=True)
                 window["-STOP-"].update(disabled=False)
-                log_content += f"\n{'='*50}\nStarting Zlecenia...\n{'='*50}\n"
+                log_content += f"\n{LOG_SEPARATOR}\nStarting Zlecenia...\n{LOG_SEPARATOR}\n"
                 window["-LOG-"].update(log_content)
 
         elif event == "-FAKTURY-":
@@ -102,7 +105,7 @@ def main():
                 window["-ZLECENIA-"].update(disabled=True)
                 window["-FAKTURY-"].update(disabled=True)
                 window["-STOP-"].update(disabled=False)
-                log_content += f"\n{'='*50}\nStarting Faktury...\n{'='*50}\n"
+                log_content += f"\n{LOG_SEPARATOR}\nStarting Faktury...\n{LOG_SEPARATOR}\n"
                 window["-LOG-"].update(log_content)
 
         elif event == "-STOP-":
