@@ -3,6 +3,16 @@
 import json
 import os
 from pathlib import Path
+from typing import List, Optional
+
+
+def get_app_dir() -> Path:
+    """Get the application directory (where app.py resides).
+
+    Returns:
+        Path to the application directory.
+    """
+    return Path(__file__).parent.resolve()
 
 
 class ConfigManager:
@@ -37,6 +47,22 @@ class ConfigManager:
                 "zlecenia": "scripts/zlecenia_main.py",
                 "faktury": "scripts/faktury_main.py"
             },
+            "entries": [
+                {
+                    "name": "Zlecenia",
+                    "script_path": "scripts/zlecenia_main.py",
+                    "working_dir": "",
+                    "interpreter": "",
+                    "args": ""
+                },
+                {
+                    "name": "Faktury",
+                    "script_path": "scripts/faktury_main.py",
+                    "working_dir": "",
+                    "interpreter": "",
+                    "args": ""
+                }
+            ],
             "python_executable": "python",
             "log_max_lines": 1000
         }
@@ -99,3 +125,84 @@ class ConfigManager:
             Path to the Python executable.
         """
         return self._config.get("python_executable", "python")
+
+    @property
+    def entries(self) -> List[dict]:
+        """Get the list of menu entries.
+
+        Returns:
+            List of entry dictionaries.
+        """
+        return self._config.get("entries", [])
+
+    def add_entry(self, name: str, script_path: str, working_dir: str = "",
+                  interpreter: str = "", args: str = "") -> None:
+        """Add a new menu entry.
+
+        Args:
+            name: Display name for the entry.
+            script_path: Path to the script file.
+            working_dir: Working directory for the script (optional).
+            interpreter: Python interpreter path (optional).
+            args: Command line arguments (optional).
+        """
+        if "entries" not in self._config:
+            self._config["entries"] = []
+
+        entry = {
+            "name": name,
+            "script_path": script_path,
+            "working_dir": working_dir,
+            "interpreter": interpreter,
+            "args": args
+        }
+        self._config["entries"].append(entry)
+
+    def update_entry(self, index: int, name: str, script_path: str,
+                     working_dir: str = "", interpreter: str = "",
+                     args: str = "") -> bool:
+        """Update an existing menu entry.
+
+        Args:
+            index: Index of the entry to update.
+            name: Display name for the entry.
+            script_path: Path to the script file.
+            working_dir: Working directory for the script (optional).
+            interpreter: Python interpreter path (optional).
+            args: Command line arguments (optional).
+
+        Returns:
+            True if entry was updated, False if index is invalid.
+        """
+        if "entries" not in self._config:
+            return False
+
+        entries = self._config["entries"]
+        if 0 <= index < len(entries):
+            entries[index] = {
+                "name": name,
+                "script_path": script_path,
+                "working_dir": working_dir,
+                "interpreter": interpreter,
+                "args": args
+            }
+            return True
+        return False
+
+    def remove_entry(self, index: int) -> bool:
+        """Remove a menu entry.
+
+        Args:
+            index: Index of the entry to remove.
+
+        Returns:
+            True if entry was removed, False if index is invalid.
+        """
+        if "entries" not in self._config:
+            return False
+
+        entries = self._config["entries"]
+        if 0 <= index < len(entries):
+            entries.pop(index)
+            return True
+        return False

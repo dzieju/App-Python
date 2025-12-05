@@ -6,17 +6,22 @@ Menu do uruchamiania aplikacji PY - Launcher for running Python scripts using Tk
 
 This application provides a graphical user interface (GUI) for launching and managing Python scripts. It uses **Tkinter**, which is part of Python's standard library, so no external dependencies are required.
 
-The launcher supports running two main scripts:
+The launcher supports running multiple scripts configured through the GUI:
 
 - **Zlecenia** (Orders) - Script for processing order batches
 - **Faktury** (Invoices) - Script for processing invoice batches
+- **Custom entries** - Add your own scripts through the GUI
 
 ## Features
 
 - Simple and intuitive GUI built with **Tkinter** (standard library)
+- **Add new menu entries** through the GUI with file/folder browser dialogs
+- **Edit and delete existing entries** from the configuration window
+- **File chooser dialog** for selecting Python scripts (*.py)
+- **Folder chooser dialog** for selecting working directory
+- **Relative path support** - paths can be stored relative to the application folder
 - Real-time output logging from running scripts
 - Start/Stop control for running processes
-- Configuration window for easy settings management
 - Configuration management via JSON file (`data/config.json`)
 - Automatic config file creation if missing
 
@@ -44,6 +49,25 @@ Run the launcher application:
 python app.py
 ```
 
+### Adding a New Entry via GUI
+
+1. Click the **Konfiguracja** (Configuration) button
+2. Click **Dodaj wpis** (Add Entry)
+3. Enter the entry name
+4. Click **Wybierz...** next to "Ścieżka do skryptu" to browse for a Python script
+5. Optionally click **Wybierz...** next to "Katalog roboczy" to set a working directory
+6. Optionally fill in interpreter and arguments
+7. Check/uncheck "Zapisz ścieżkę względnie do folderu aplikacji" to store relative/absolute paths
+8. Click **OK** to add the entry
+9. Click **Zapisz** (Save) to save all changes
+
+### Editing/Deleting Entries
+
+1. Click the **Konfiguracja** button
+2. Select an entry from the list
+3. Click **Edytuj** (Edit) to modify or **Usuń** (Delete) to remove
+4. Click **Zapisz** to save changes
+
 ### Manual Test Steps
 
 1. Run `python app.py` to start the launcher
@@ -53,6 +77,8 @@ python app.py
 5. Click **Faktury** to test the other script
 6. Click **Wyczyść log** (Clear Log) to clear the output log
 7. Click **Konfiguracja** to open the configuration window
+8. Click **Dodaj wpis** → Select `scripts/zlecenia_main.py` via file dialog → Confirm
+9. Return to main window and click the new button to run the script
 
 ## Project Structure
 
@@ -79,12 +105,36 @@ The application uses `data/config.json` for configuration. If this file is missi
     "zlecenia": "scripts/zlecenia_main.py",
     "faktury": "scripts/faktury_main.py"
   },
+  "entries": [
+    {
+      "name": "Zlecenia",
+      "script_path": "scripts/zlecenia_main.py",
+      "working_dir": "",
+      "interpreter": "",
+      "args": ""
+    },
+    {
+      "name": "Faktury",
+      "script_path": "scripts/faktury_main.py",
+      "working_dir": "",
+      "interpreter": "",
+      "args": ""
+    }
+  ],
   "python_executable": "python",
   "log_max_lines": 1000
 }
 ```
 
-You can also modify the configuration through the GUI by clicking the **Konfiguracja** button.
+### Entry Fields
+
+- **name**: Display name for the button
+- **script_path**: Path to the Python script (absolute or relative to app folder)
+- **working_dir**: Working directory for script execution (optional, defaults to script's directory)
+- **interpreter**: Custom Python interpreter path (optional)
+- **args**: Command line arguments to pass to the script (optional)
+
+You can modify the configuration through the GUI by clicking the **Konfiguracja** button.
 
 ## Building Executable with PyInstaller
 

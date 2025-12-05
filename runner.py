@@ -36,11 +36,13 @@ class ProcessRunner:
             return False
         return process.poll() is None
 
-    def start(self, script_path: str) -> bool:
+    def start(self, script_path: str, cwd: str = None, args: str = "") -> bool:
         """Start a Python script as a subprocess.
 
         Args:
             script_path: Path to the Python script to run.
+            cwd: Working directory for the process (optional).
+            args: Command line arguments (optional).
 
         Returns:
             True if the script was started successfully, False otherwise.
@@ -53,13 +55,22 @@ class ProcessRunner:
             self._output_queue.put(f"Error: Script not found: {script_path}\n")
             return False
 
+        # Determine working directory
+        working_dir = cwd if cwd else str(script.parent)
+
+        # Build command with optional arguments
+        cmd = [self.python_executable, str(script)]
+        if args:
+            cmd.extend(args.split())
+
         try:
             self._process = subprocess.Popen(
-                [self.python_executable, str(script)],
+                cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
-                bufsize=1
+                bufsize=1,
+                cwd=working_dir
             )
             self._running = True
             self._start_reader_thread()
