@@ -1,5 +1,6 @@
 """Process runner module for executing Python scripts."""
 
+import shlex
 import subprocess
 import threading
 import queue
@@ -61,7 +62,7 @@ class ProcessRunner:
         # Build command with optional arguments
         cmd = [self.python_executable, str(script)]
         if args:
-            cmd.extend(args.split())
+            cmd.extend(shlex.split(args))
 
         try:
             self._process = subprocess.Popen(

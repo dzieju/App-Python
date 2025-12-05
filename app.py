@@ -1,6 +1,7 @@
 """Main launcher application using Tkinter (standard library)."""
 
 import os
+from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, messagebox, scrolledtext, filedialog
 from config import ConfigManager, get_app_dir
@@ -621,7 +622,6 @@ class EntryDialog:
             Relative path if under app_dir, otherwise the original path.
         """
         try:
-            from pathlib import Path
             p = Path(path).resolve()
             rel = p.relative_to(self.app_dir)
             return str(rel).replace("\\", "/")
