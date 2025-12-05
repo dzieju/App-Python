@@ -143,7 +143,6 @@ class LauncherApp:
     def _start_update_loop(self) -> None:
         """Start the update loop to check process output."""
         self._update()
-        self.root.after(100, self._start_update_loop)
 
     def _update(self) -> None:
         """Update the log with process output and check process status."""
@@ -151,13 +150,7 @@ class LauncherApp:
         if self.runner.is_running:
             output = self.runner.get_output()
             if output:
-                self.log_content += output
-                # Limit log size
-                lines = self.log_content.split("\n")
-                max_lines = self.config.get("log_max_lines", 1000)
-                if len(lines) > max_lines:
-                    self.log_content = "\n".join(lines[-max_lines:])
-                self._update_log_display()
+                self._append_to_log(output)
 
         # Check if process finished
         if self.current_script and not self.runner.is_running:
@@ -167,8 +160,32 @@ class LauncherApp:
             self.btn_stop.config(state=tk.DISABLED)
             self.current_script = None
 
+        # Schedule next update using after() directly
+        self.root.after(100, self._update)
+
+    def _append_to_log(self, text: str) -> None:
+        """Append text to the log widget efficiently.
+
+        Args:
+            text: The text to append to the log.
+        """
+        self.log_content += text
+        # Limit log size
+        lines = self.log_content.split("\n")
+        max_lines = self.config.get("log_max_lines", 1000)
+        if len(lines) > max_lines:
+            self.log_content = "\n".join(lines[-max_lines:])
+            # Full refresh needed when truncating
+            self._update_log_display()
+        else:
+            # Efficient append - only add new content
+            self.log_text.config(state=tk.NORMAL)
+            self.log_text.insert(tk.END, text)
+            self.log_text.see(tk.END)
+            self.log_text.config(state=tk.DISABLED)
+
     def _update_log_display(self) -> None:
-        """Update the log text widget with current content."""
+        """Update the log text widget with full content refresh."""
         self.log_text.config(state=tk.NORMAL)
         self.log_text.delete(1.0, tk.END)
         self.log_text.insert(tk.END, self.log_content)
@@ -184,8 +201,7 @@ class LauncherApp:
             self.btn_zlecenia.config(state=tk.DISABLED)
             self.btn_faktury.config(state=tk.DISABLED)
             self.btn_stop.config(state=tk.NORMAL)
-            self.log_content += f"\n{LOG_SEPARATOR}\nUruchamianie Zlecenia...\n{LOG_SEPARATOR}\n"
-            self._update_log_display()
+            self._append_to_log(f"\n{LOG_SEPARATOR}\nUruchamianie Zlecenia...\n{LOG_SEPARATOR}\n")
 
     def _on_faktury(self) -> None:
         """Handle Faktury button click."""
@@ -196,15 +212,13 @@ class LauncherApp:
             self.btn_zlecenia.config(state=tk.DISABLED)
             self.btn_faktury.config(state=tk.DISABLED)
             self.btn_stop.config(state=tk.NORMAL)
-            self.log_content += f"\n{LOG_SEPARATOR}\nUruchamianie Faktury...\n{LOG_SEPARATOR}\n"
-            self._update_log_display()
+            self._append_to_log(f"\n{LOG_SEPARATOR}\nUruchamianie Faktury...\n{LOG_SEPARATOR}\n")
 
     def _on_stop(self) -> None:
         """Handle Stop button click."""
         if self.runner.is_running:
             self.runner.stop()
-            self.log_content += f"\n[ZATRZYMANO] {self.current_script} zostało zatrzymane przez użytkownika.\n"
-            self._update_log_display()
+            self._append_to_log(f"\n[ZATRZYMANO] {self.current_script} zostało zatrzymane przez użytkownika.\n")
             self.status_label.config(text="Status: Zatrzymano")
             self.btn_zlecenia.config(state=tk.NORMAL)
             self.btn_faktury.config(state=tk.NORMAL)
@@ -301,10 +315,19 @@ class ConfigWindow:
 
     def _on_save(self) -> None:
         """Handle Save button click."""
-        self.config.set("python_executable", self.py_entry.get())
+        py_path = self.py_entry.get().strip()
+        zlecenia_path = self.zlecenia_entry.get().strip()
+        faktury_path = self.faktury_entry.get().strip()
+
+        # Validate that fields are not empty
+        if not py_path:
+            messagebox.showwarning("Ostrzeżenie", "Ścieżka do Python nie może być pusta.")
+            return
+
+        self.config.set("python_executable", py_path)
         scripts = {
-            "zlecenia": self.zlecenia_entry.get(),
-            "faktury": self.faktury_entry.get()
+            "zlecenia": zlecenia_path,
+            "faktury": faktury_path
         }
         self.config.set("scripts", scripts)
         self.config.save()
