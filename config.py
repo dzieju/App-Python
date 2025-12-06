@@ -94,12 +94,15 @@ class ConfigManager:
         )
         
         try:
+            # Set secure permissions (read/write for owner only)
+            os.chmod(temp_path, 0o600)
+            
             with os.fdopen(temp_fd, "w", encoding="utf-8") as f:
                 json.dump(self._config, f, indent=2, ensure_ascii=False)
             
             # Atomic rename (on most systems)
             os.replace(temp_path, self.config_path)
-        except Exception:
+        except (IOError, OSError, json.JSONEncodeError) as e:
             # Clean up temp file if save failed
             try:
                 os.remove(temp_path)
