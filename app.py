@@ -454,10 +454,11 @@ class EntryDialog:
         self.result = None
         self.app_dir = get_app_dir()
         self.last_browse_dir = str(self.app_dir)
+        self.entry = entry  # Store original entry for editing
 
         self.window = tk.Toplevel(parent)
         self.window.title("Edytuj wpis" if entry else "Dodaj wpis")
-        self.window.geometry("500x350")
+        self.window.geometry("500x400")
         self.window.resizable(False, False)
         self.window.transient(parent)
         self.window.grab_set()
@@ -526,22 +527,45 @@ class EntryDialog:
         if entry:
             self.args_entry.insert(0, entry.get("args", ""))
 
-        # Relative path checkbox
-        self.relative_var = tk.BooleanVar(value=True)
+        # Relative path checkbox - prefill from entry if editing
+        initial_relative = entry.get("save_relative", True) if entry else True
+        self.relative_var = tk.BooleanVar(value=initial_relative)
         self.relative_check = ttk.Checkbutton(
             main_frame,
             text="Zapisz ścieżkę względnie do folderu aplikacji",
             variable=self.relative_var
         )
         self.relative_check.pack(anchor=tk.W, pady=10)
+        
+        # Show console checkbox - prefill from entry if editing
+        initial_show_console = entry.get("show_console", False) if entry else False
+        self.show_console_var = tk.BooleanVar(value=initial_show_console)
+        self.show_console_check = ttk.Checkbutton(
+            main_frame,
+            text="Pokaż okno konsoli podczas uruchamiania",
+            variable=self.show_console_var
+        )
+        self.show_console_check.pack(anchor=tk.W, pady=5)
+        
+        # Enabled checkbox - prefill from entry if editing
+        initial_enabled = entry.get("enabled", True) if entry else True
+        self.enabled_var = tk.BooleanVar(value=initial_enabled)
+        self.enabled_check = ttk.Checkbutton(
+            main_frame,
+            text="Wpis aktywny",
+            variable=self.enabled_var
+        )
+        self.enabled_check.pack(anchor=tk.W, pady=5)
 
         # Buttons
         btn_frame = ttk.Frame(main_frame)
         btn_frame.pack(fill=tk.X, pady=10)
 
+        # Use "Zapisz" for edit, "Dodaj" for new entry
+        save_btn_text = "Zapisz" if entry else "Dodaj"
         ttk.Button(
             btn_frame,
-            text="Zapisz",
+            text=save_btn_text,
             command=self._on_ok
         ).pack(side=tk.RIGHT, padx=5)
 
@@ -586,6 +610,7 @@ class EntryDialog:
         interpreter = self.interpreter_entry.get().strip()
         args = self.args_entry.get().strip()
 
+        # Validation
         if not name:
             messagebox.showwarning("Ostrzeżenie", "Nazwa nie może być pusta.")
             return
@@ -594,19 +619,35 @@ class EntryDialog:
             messagebox.showwarning("Ostrzeżenie", "Ścieżka do skryptu nie może być pusta.")
             return
 
-        # Convert to relative path if checkbox is checked
-        if self.relative_var.get():
-            script_path = self._make_relative(script_path)
+        # Determine if we should save as relative paths
+        save_relative = self.relative_var.get()
+        
+        # Store the paths (relative or absolute based on checkbox)
+        stored_script = script_path
+        stored_workdir = working_dir
+        
+        if save_relative:
+            stored_script = self._make_relative(script_path)
             if working_dir:
-                working_dir = self._make_relative(working_dir)
+                stored_workdir = self._make_relative(working_dir)
 
+        # Build complete entry dict with all fields
         self.result = {
             "name": name,
-            "script_path": script_path,
-            "working_dir": working_dir,
+            "script_path": stored_script,
+            "working_dir": stored_workdir,
             "interpreter": interpreter,
-            "args": args
+            "args": args,
+            "save_relative": save_relative,
+            "show_console": self.show_console_var.get(),
+            "enabled": self.enabled_var.get(),
+            "cwd_flag": bool(working_dir)  # True if working_dir is set
         }
+        
+        # Preserve id if editing existing entry
+        if self.entry and "id" in self.entry:
+            self.result["id"] = self.entry["id"]
+        
         self.window.destroy()
 
     def _make_relative(self, path: str) -> str:
