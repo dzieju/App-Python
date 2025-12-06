@@ -359,7 +359,7 @@ class ConfigWindow:
 
         ttk.Button(
             btn_frame,
-            text="Zapisz",
+            text="Zapisz i Zamknij",
             command=self._on_save
         ).pack(side=tk.RIGHT, padx=5)
 
@@ -544,7 +544,7 @@ class EntryDialog:
 
         ttk.Button(
             btn_frame,
-            text="OK",
+            text="Zapisz",
             command=self._on_ok
         ).pack(side=tk.RIGHT, padx=5)
 

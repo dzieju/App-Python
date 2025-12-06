@@ -2,6 +2,7 @@
 
 import json
 import os
+import tempfile
 from pathlib import Path
 from typing import List, Optional
 
@@ -82,10 +83,29 @@ class ConfigManager:
         return self._config
 
     def save(self) -> None:
-        """Save current configuration to the JSON file."""
+        """Save current configuration to the JSON file atomically."""
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(self.config_path, "w", encoding="utf-8") as f:
-            json.dump(self._config, f, indent=2, ensure_ascii=False)
+        
+        # Write to a temporary file first, then rename for atomic save
+        temp_fd, temp_path = tempfile.mkstemp(
+            dir=self.config_path.parent,
+            prefix=".config_",
+            suffix=".tmp"
+        )
+        
+        try:
+            with os.fdopen(temp_fd, "w", encoding="utf-8") as f:
+                json.dump(self._config, f, indent=2, ensure_ascii=False)
+            
+            # Atomic rename (on most systems)
+            os.replace(temp_path, self.config_path)
+        except Exception:
+            # Clean up temp file if save failed
+            try:
+                os.remove(temp_path)
+            except OSError:
+                pass
+            raise
 
     def get(self, key: str, default=None):
         """Get a configuration value.
