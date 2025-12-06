@@ -158,7 +158,7 @@ class ConfigManager:
         """
         return self._config.get("entries", [])
 
-    def add_entry(self, name: str = None, script_path: str = None, working_dir: str = "",
+    def add_entry(self, name: str, script_path: str, working_dir: str = "",
                   interpreter: str = "", args: str = "", save_relative: bool = True,
                   show_console: bool = False, enabled: bool = True, 
                   cwd_flag: bool = False, **kwargs) -> None:
@@ -195,7 +195,7 @@ class ConfigManager:
         self._config["entries"].append(entry)
         self.save()
 
-    def update_entry(self, index: int, name: str = None, script_path: str = None,
+    def update_entry(self, index: int, name: str, script_path: str,
                      working_dir: str = "", interpreter: str = "",
                      args: str = "", save_relative: bool = True,
                      show_console: bool = False, enabled: bool = True,
