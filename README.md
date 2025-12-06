@@ -17,6 +17,7 @@ The launcher supports running multiple scripts configured through the GUI:
 - Simple and intuitive GUI built with **Tkinter** (standard library)
 - **Add new menu entries** through the GUI with file/folder browser dialogs
 - **Edit and delete existing entries** from the configuration window
+- **Persistent configuration saving** - changes to entries are automatically saved to `data/config.json`
 - **File chooser dialog** for selecting Python scripts (*.py)
 - **Folder chooser dialog** for selecting working directory
 - **Relative path support** - paths can be stored relative to the application folder
