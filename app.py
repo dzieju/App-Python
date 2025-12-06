@@ -458,8 +458,9 @@ class EntryDialog:
 
         self.window = tk.Toplevel(parent)
         self.window.title("Edytuj wpis" if entry else "Dodaj wpis")
-        self.window.geometry("500x400")
-        self.window.resizable(False, False)
+        self.window.geometry("550x550")
+        self.window.resizable(True, True)
+        self.window.minsize(500, 500)
         self.window.transient(parent)
         self.window.grab_set()
 
@@ -557,22 +558,27 @@ class EntryDialog:
         )
         self.enabled_check.pack(anchor=tk.W, pady=5)
 
-        # Buttons
+        # Separator before buttons for better visibility
+        ttk.Separator(main_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=10)
+
+        # Buttons frame with prominent layout
         btn_frame = ttk.Frame(main_frame)
-        btn_frame.pack(fill=tk.X, pady=10)
+        btn_frame.pack(fill=tk.X, pady=(5, 10))
 
         # Use "Zapisz" for edit, "Dodaj" for new entry
         save_btn_text = "Zapisz" if entry else "Dodaj"
         ttk.Button(
             btn_frame,
             text=save_btn_text,
-            command=self._on_ok
+            command=self._on_ok,
+            width=12
         ).pack(side=tk.RIGHT, padx=5)
 
         ttk.Button(
             btn_frame,
             text="Anuluj",
-            command=self._on_cancel
+            command=self._on_cancel,
+            width=12
         ).pack(side=tk.RIGHT, padx=5)
 
     def _browse_script(self) -> None:
