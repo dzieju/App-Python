@@ -383,7 +383,6 @@ class ConfigWindow:
         self.window.wait_window(dialog.window)
         if dialog.result:
             self.config.add_entry(**dialog.result)
-            self.config.save()
             self._refresh_entries_list()
             if self.on_refresh_callback:
                 self.on_refresh_callback()
@@ -405,7 +404,6 @@ class ConfigWindow:
         self.window.wait_window(dialog.window)
         if dialog.result:
             self.config.update_entry(index, **dialog.result)
-            self.config.save()
             self._refresh_entries_list()
             if self.on_refresh_callback:
                 self.on_refresh_callback()
@@ -420,7 +418,6 @@ class ConfigWindow:
         index = selection[0]
         if messagebox.askyesno("Potwierdzenie", "Czy na pewno chcesz usunąć ten wpis?"):
             self.config.remove_entry(index)
-            self.config.save()
             self._refresh_entries_list()
             if self.on_refresh_callback:
                 self.on_refresh_callback()

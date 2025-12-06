@@ -160,7 +160,7 @@ class ConfigManager:
 
     def add_entry(self, name: str, script_path: str, working_dir: str = "",
                   interpreter: str = "", args: str = "") -> None:
-        """Add a new menu entry.
+        """Add a new menu entry and save configuration.
 
         Args:
             name: Display name for the entry.
@@ -180,11 +180,12 @@ class ConfigManager:
             "args": args
         }
         self._config["entries"].append(entry)
+        self.save()
 
     def update_entry(self, index: int, name: str, script_path: str,
                      working_dir: str = "", interpreter: str = "",
                      args: str = "") -> bool:
-        """Update an existing menu entry.
+        """Update an existing menu entry and save configuration.
 
         Args:
             index: Index of the entry to update.
@@ -209,11 +210,12 @@ class ConfigManager:
                 "interpreter": interpreter,
                 "args": args
             }
+            self.save()
             return True
         return False
 
     def remove_entry(self, index: int) -> bool:
-        """Remove a menu entry.
+        """Remove a menu entry and save configuration.
 
         Args:
             index: Index of the entry to remove.
@@ -227,5 +229,6 @@ class ConfigManager:
         entries = self._config["entries"]
         if 0 <= index < len(entries):
             entries.pop(index)
+            self.save()
             return True
         return False
