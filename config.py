@@ -158,8 +158,10 @@ class ConfigManager:
         """
         return self._config.get("entries", [])
 
-    def add_entry(self, name: str, script_path: str, working_dir: str = "",
-                  interpreter: str = "", args: str = "") -> None:
+    def add_entry(self, name: str = None, script_path: str = None, working_dir: str = "",
+                  interpreter: str = "", args: str = "", save_relative: bool = True,
+                  show_console: bool = False, enabled: bool = True, 
+                  cwd_flag: bool = False, **kwargs) -> None:
         """Add a new menu entry and save configuration.
 
         Args:
@@ -168,6 +170,11 @@ class ConfigManager:
             working_dir: Working directory for the script (optional).
             interpreter: Python interpreter path (optional).
             args: Command line arguments (optional).
+            save_relative: Whether paths are stored relative to app folder.
+            show_console: Whether to show console window when running.
+            enabled: Whether the entry is enabled.
+            cwd_flag: Whether working directory is set.
+            **kwargs: Additional fields to include in the entry.
         """
         if "entries" not in self._config:
             self._config["entries"] = []
@@ -177,14 +184,22 @@ class ConfigManager:
             "script_path": script_path,
             "working_dir": working_dir,
             "interpreter": interpreter,
-            "args": args
+            "args": args,
+            "save_relative": save_relative,
+            "show_console": show_console,
+            "enabled": enabled,
+            "cwd_flag": cwd_flag
         }
+        # Add any additional fields from kwargs
+        entry.update(kwargs)
         self._config["entries"].append(entry)
         self.save()
 
-    def update_entry(self, index: int, name: str, script_path: str,
+    def update_entry(self, index: int, name: str = None, script_path: str = None,
                      working_dir: str = "", interpreter: str = "",
-                     args: str = "") -> bool:
+                     args: str = "", save_relative: bool = True,
+                     show_console: bool = False, enabled: bool = True,
+                     cwd_flag: bool = False, **kwargs) -> bool:
         """Update an existing menu entry and save configuration.
 
         Args:
@@ -194,6 +209,11 @@ class ConfigManager:
             working_dir: Working directory for the script (optional).
             interpreter: Python interpreter path (optional).
             args: Command line arguments (optional).
+            save_relative: Whether paths are stored relative to app folder.
+            show_console: Whether to show console window when running.
+            enabled: Whether the entry is enabled.
+            cwd_flag: Whether working directory is set.
+            **kwargs: Additional fields to include in the entry.
 
         Returns:
             True if entry was updated, False if index is invalid.
@@ -203,13 +223,33 @@ class ConfigManager:
 
         entries = self._config["entries"]
         if 0 <= index < len(entries):
-            entries[index] = {
+            # Preserve existing id if present
+            existing_id = entries[index].get("id")
+            
+            entry = {
                 "name": name,
                 "script_path": script_path,
                 "working_dir": working_dir,
                 "interpreter": interpreter,
-                "args": args
+                "args": args,
+                "save_relative": save_relative,
+                "show_console": show_console,
+                "enabled": enabled,
+                "cwd_flag": cwd_flag
             }
+            
+            # Preserve id if it existed
+            if existing_id is not None:
+                entry["id"] = existing_id
+            elif "id" in kwargs:
+                entry["id"] = kwargs["id"]
+                
+            # Add any additional fields from kwargs (except id which was handled)
+            for key, value in kwargs.items():
+                if key != "id":
+                    entry[key] = value
+                    
+            entries[index] = entry
             self.save()
             return True
         return False
